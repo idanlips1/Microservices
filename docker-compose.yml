@@ -1,0 +1,49 @@
+services:
+  stocks1:
+    build:
+      context: ./stockapi_updated  # Path to your StockService code
+    container_name: stocks1
+    ports:
+      - "5001:8000"  # Host port 5001 maps to container port 8000
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/stocksdb
+      - SPRING_PROFILES_ACTIVE=stocks1
+    depends_on:
+      - mongo
+    restart: always
+
+  stocks2:
+    build:
+      context: ./stockapi_updated
+    container_name: stocks2
+    ports:
+      - "5002:8000"  # Host port 5002 maps to container port 8000
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/stocksdb
+      - SPRING_PROFILES_ACTIVE=stocks2
+    depends_on:
+      - mongo
+    restart: always
+
+  capital-gains:
+    build:
+      context: ./capitalgains
+    container_name: capital-gains
+    ports:
+      - "5003:8080"  # Host port 5003 maps to container port 8080
+    depends_on:
+      - stocks1
+      - stocks2
+    restart: always
+
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+volumes:
+  mongo-data:
