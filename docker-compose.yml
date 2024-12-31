@@ -1,10 +1,38 @@
 services:
-  stocks1:
+  nginx:
     build:
-      context: ./stockapi_updated  # Path to your StockService code
-    container_name: stocks1
+      context: ./nginx
+    container_name: nginx
     ports:
-      - "5001:8000"  # Host port 5001 maps to container port 8000
+      - "80:80"
+    depends_on:
+      - stocks1-a
+      - stocks1-b
+      - stocks2
+      - capital-gains
+    restart: always
+
+  stocks1-a:
+    build:
+      context: ./stockapi_updated
+    container_name: stocks1-a
+    ports:
+      - "5001:8000"
+    expose:
+      - 8000
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/stocksdb
+      - SPRING_PROFILES_ACTIVE=stocks1
+    depends_on:
+      - mongo
+    restart: always
+
+  stocks1-b:
+    build:
+      context: ./stockapi_updated
+    container_name: stocks1-b
+    expose:
+      - 8000
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/stocksdb
       - SPRING_PROFILES_ACTIVE=stocks1
@@ -17,7 +45,9 @@ services:
       context: ./stockapi_updated
     container_name: stocks2
     ports:
-      - "5002:8000"  # Host port 5002 maps to container port 8000
+      - "5002:8000"
+    expose:
+      - 8000
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/stocksdb
       - SPRING_PROFILES_ACTIVE=stocks2
@@ -30,9 +60,12 @@ services:
       context: ./capitalgains
     container_name: capital-gains
     ports:
-      - "5003:8080"  # Host port 5003 maps to container port 8080
+      - "5003:8080"
+    environment:
+      - stocks1.url=http://stocks1-a:8000
+      - stocks2.url=http://stocks2:8000
     depends_on:
-      - stocks1
+      - stocks1-a
       - stocks2
     restart: always
 

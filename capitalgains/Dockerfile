@@ -2,12 +2,11 @@ FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-COPY ./pom.xml .
-COPY ./src ./src
-
-RUN apt-get update && apt-get install -y maven
-RUN mvn clean package -DskipTests
+COPY target/capitalgains-0.0.1-SNAPSHOT.jar capital-gains.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/capitalgains-0.0.1-SNAPSHOT.jar"] 
+ENV STOCKS1_URL=http://stocks1:8000
+ENV STOCKS2_URL=http://stocks2:8000
+
+CMD ["java", "-jar", "capital-gains.jar"] 
