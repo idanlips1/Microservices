@@ -3,8 +3,8 @@ kind: Cluster
 nodes:
   - role: control-plane
     extraPortMappings:
-      - containerPort: 30080 # NodePort of the sample-app service
-        hostPort: 8080     
-      - containerPort: 31322 # NodePort of the nginx service
+      - containerPort: 31322  # NodePort for the nginx service
         hostPort: 80
-    
+    extraMounts:
+      - hostPath: /tmp/k8s-data  # Host machine path
+        containerPath: /mnt/data  # Path inside the node container 
