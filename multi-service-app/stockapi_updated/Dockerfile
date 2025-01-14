@@ -10,8 +10,8 @@ COPY target/stockapi-0.0.1-SNAPSHOT.jar stocks-api.jar
 # Expose the application's port
 EXPOSE 8000
 
-# Set environment variables for MongoDB connection
-ENV MONGO_URI=mongodb://mongo:27017/stocks
+# Set environment variables
+ENV NINJA_API_KEY=GSBDSCF31HehCSxIozHtjw==CY8yGhcKCEU3ZNgG
 
 # Command to run the application
 CMD ["java", "-jar", "stocks-api.jar"]

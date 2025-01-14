@@ -21,8 +21,8 @@ public class StockService {
     @Value("${mongo.collection}") // Inject collection name from properties/env
     private String collectionName;
     private final RestTemplate restTemplate = new RestTemplate();
-    /// this is the error , we removed the if else here the api key is from the docker file
-    private final String API_KEY = "GSBDSCF31HehCSxIozHtjw==CY8yGhcKCEU3ZNgG";
+    @Value("${ninja.api.key}")  // Change from hardcoded to environment variable
+    private String API_KEY;
     public Integer Counter = 0;
 
     @Autowired

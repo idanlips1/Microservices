@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stocks
+  namespace: stocks-app
+spec:
+  replicas: 2  # Two replicas as required
+  selector:
+    matchLabels:
+      app: stocks
+  template:
+    metadata:
+      labels:
+        app: stocks
+    spec:
+      containers:
+      - name: stocks
+        image: stocks:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000  # Port your Java app listens on
+        env:
+        - name: NINJA_API_KEY
+          value: "GSBDSCF31HehCSxIozHtjw==CY8yGhcKCEU3ZNgG"
+        - name: MONGO_URI
+          value: "mongodb://mongo:27017/stocksdb"
