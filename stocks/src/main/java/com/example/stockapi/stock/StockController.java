@@ -109,7 +109,7 @@ public class StockController {
         }
     }
 
-    @GetMapping("/stock-value/{id}")
+    @GetMapping("/stocks/stock-value/{id}")
     public ResponseEntity getStockValue(@PathVariable String id) {
 
         try {
@@ -126,7 +126,7 @@ public class StockController {
 
     }
 
-    @GetMapping("/portfolio-value")
+    @GetMapping("/stocks/portfolio-value")
     public ResponseEntity getPortfolioValue() {
         try {
             PortfolioValueResponse portfolioValue = stockService.getPortfolio();
@@ -135,10 +135,5 @@ public class StockController {
             Map<String, String> errorResponse = Map.of("server error", e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    @GetMapping("/kill")
-    public void kill() {
-        System.exit(1);
     }
 }

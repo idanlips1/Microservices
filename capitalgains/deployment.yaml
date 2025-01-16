@@ -1,7 +1,8 @@
-apiVersion: v1
-kind: Namespace
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: capitalgains
+  name: capitalgains-deployment
+  namespace: stocks
 spec:
   replicas: 1
   selector:
@@ -15,5 +16,16 @@ spec:
       containers:
         - name: capitalgains
           image: capitalgains:latest
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080 
+            - containerPort: 8080
+          env:
+            - name: STOCKS_SERVICE_URL
+              value: "http://stocks-service:8000"
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m" 

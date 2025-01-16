@@ -16,11 +16,7 @@ spec:
       containers:
       - name: mongodb
         image: mongo:latest
-        command:
-        - mongod
-        - "--replSet"
-        - rs0
-        - "--bind_ip_all"
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 27017
         volumeMounts:

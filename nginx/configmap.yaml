@@ -14,16 +14,26 @@ data:
       }
       
       upstream capitalgains-backend {
-        server capitalgains-service.capitalgains.svc.cluster.local:8080;
+        server capitalgains-service.stocks.svc.cluster.local:8080;
       }
 
       server {
         listen 80;
         
+        # Stock service endpoints
         location /stocks {
           proxy_pass http://stocks-backend;
         }
 
+        location /stock-value {
+          proxy_pass http://stocks-backend/stocks/stock-value;
+        }
+
+        location /portfolio-value {
+          proxy_pass http://stocks-backend/stocks/portfolio-value;
+        }
+
+        # Capital gains endpoint
         location /capital-gains {
           proxy_pass http://capitalgains-backend;
         }

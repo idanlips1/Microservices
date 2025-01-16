@@ -16,6 +16,7 @@ spec:
       containers:
         - name: stocks
           image: stocks:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           env:

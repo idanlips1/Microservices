@@ -86,9 +86,9 @@ public class CapitalGainService {
     }
 
     private float getCurrentPrice(String serviceUrl, String stockId) throws Exception {
-        logger.info("Getting current price from {}/stock-value/{}", serviceUrl, stockId);
+        logger.info("Getting current price from {}/stocks/stock-value/{}", serviceUrl, stockId);
         ResponseEntity<String> response = restTemplate.exchange(
-            serviceUrl + "/stock-value/" + stockId,
+            serviceUrl + "/stocks/stock-value/" + stockId,
             HttpMethod.GET,
             HttpEntity.EMPTY,
             String.class
