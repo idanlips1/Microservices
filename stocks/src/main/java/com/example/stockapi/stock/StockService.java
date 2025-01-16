@@ -5,23 +5,26 @@ import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class StockService {
-    //private final Map<String, Stock> stockMap = new HashMap<>();
-
+    private static final Logger logger = LoggerFactory.getLogger(StockService.class);
     private final MongoTemplate mongoTemplate;
 
-    @Value("${mongo.collection}") // Inject collection name from properties/env
+    @Value("${mongo.collection}")
     private String collectionName;
     private final RestTemplate restTemplate = new RestTemplate();
-    /// this is the error , we removed the if else here the api key is from the docker file
     private final String API_KEY = "GSBDSCF31HehCSxIozHtjw==CY8yGhcKCEU3ZNgG";
     public Integer Counter = 0;
 
@@ -30,9 +33,8 @@ public class StockService {
         this.mongoTemplate = mongoTemplate;
         restTemplate.setErrorHandler(new CustomErrorHandler());
     }
-    // Add a new s  stock
+
     public String addToMap(Stock stock) {
-        // Validate the input stock object
         if (stock.getName() == null || stock.getName().isBlank()) {
             stock.setName("NA");
         }
@@ -40,43 +42,51 @@ public class StockService {
             stock.setPurchaseDate("NA");
         }
 
+        // Check if stock with same symbol exists using atomic operation
+        Query query = new Query(Criteria.where("symbol").is(stock.getSymbol()));
+        if (mongoTemplate.exists(query, Stock.class, collectionName)) {
+            throw new IllegalArgumentException("Stock with symbol " + stock.getSymbol() + " already exists");
+        }
+
         Stock savedStock = mongoTemplate.insert(stock, collectionName);
         return savedStock.getId();
-
     }
 
-    // Retrieve a stock by a ID
     public Stock getStock(String id) {
-        return mongoTemplate.findById(id, Stock.class,collectionName);
+        return mongoTemplate.findById(id, Stock.class, collectionName);
     }
 
-    // Retrieve all stocks
     public List<Stock> getAllStocks() {
         return mongoTemplate.findAll(Stock.class, collectionName);
     }
 
-    public List<Stock> getAllStocksBothServices() {
-        List<Stock> stocks= mongoTemplate.findAll(Stock.class, "stocks1");
-        stocks.addAll( mongoTemplate.findAll(Stock.class, "stocks2"));
-        return stocks;
-    }
-
     public void deleteById(String id) {
-        Stock stock = mongoTemplate.findById(id, Stock.class, collectionName);
-        if (stock != null) {
-            mongoTemplate.remove(stock, collectionName);
+        // Use findAndRemove for atomic delete operation
+        Query query = new Query(Criteria.where("_id").is(id));
+        Stock deletedStock = mongoTemplate.findAndRemove(query, Stock.class, collectionName);
+        
+        if (deletedStock != null) {
+            logger.info("Successfully deleted stock with id: {}", id);
         }
     }
 
     public void updateStock(Stock stock) {
-//        Stock updatedStock = stockMap.get(stock.getId());
-//        updatedStock.setName(stock.getName());
-//        updatedStock.setPurchaseDate(stock.getPurchaseDate());
-//        updatedStock.setShares(stock.getShares());
-//        updatedStock.setStockPrice(stock.getPrice());
-//        updatedStock.setSymbol(stock.getSymbol());
-//        stockMap.put(stock.getId(), updatedStock);
-        mongoTemplate.save(stock, collectionName);
+        // Use findAndModify for atomic update operation
+        Query query = new Query(Criteria.where("_id").is(stock.getId()));
+        Update update = new Update()
+            .set("name", stock.getName())
+            .set("symbol", stock.getSymbol())
+            .set("purchase price", stock.getPrice())
+            .set("purchase date", stock.getPurchaseDate())
+            .set("shares", stock.getShares());
+
+        FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true).upsert(false);
+        
+        Stock updatedStock = mongoTemplate.findAndModify(query, update, options, Stock.class, collectionName);
+        
+        if (updatedStock == null) {
+            throw new IllegalArgumentException("Stock not found with id: " + stock.getId());
+        }
     }
 
     public StockValueResponse getStockValue(String id)throws Exception {
