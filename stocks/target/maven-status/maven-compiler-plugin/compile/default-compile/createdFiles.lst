@@ -1,0 +1,9 @@
+com/example/stockapi/stock/IStockRepository.class
+com/example/stockapi/StockapiApplication.class
+com/example/stockapi/stock/StockService.class
+com/example/stockapi/stock/CustomErrorHandler.class
+com/example/stockapi/stock/StockValueResponse.class
+com/example/stockapi/stock/StockController.class
+com/example/stockapi/stock/Stockmain.class
+com/example/stockapi/stock/PortfolioValueResponse.class
+com/example/stockapi/stock/Stock.class
