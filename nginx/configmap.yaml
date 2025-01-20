@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: stocks
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    http {
+      upstream stocks-backend {
+        server stocks-service.stocks.svc.cluster.local:8000;
+      }
+      
+      upstream capitalgains-backend {
+        server capitalgains-service.stocks.svc.cluster.local:8080;
+      }
+
+      server {
+        listen 80;
+        
+        # Stock service endpoints
+        location /stocks {
+          proxy_pass http://stocks-backend;
+        }
+
+        location /stock-value {
+          proxy_pass http://stocks-backend/stocks/stock-value;
+        }
+
+        location /portfolio-value {
+          proxy_pass http://stocks-backend/stocks/portfolio-value;
+        }
+
+        # Capital gains endpoint
+        location /capital-gains {
+          proxy_pass http://capitalgains-backend;
+        }
+      }
+    } 

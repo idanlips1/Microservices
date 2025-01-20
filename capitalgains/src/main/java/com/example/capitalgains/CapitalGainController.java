@@ -14,12 +14,11 @@ public class CapitalGainController {
 
     @GetMapping
     public ResponseEntity<?> getCapitalGains(
-        @RequestParam(required = false) String portfolio,
         @RequestParam(required = false) Integer numsharesgt,
         @RequestParam(required = false) Integer numshareslt
     ) {
         try {
-            float gains = capitalGainService.calculateCapitalGains(portfolio, numsharesgt, numshareslt);
+            float gains = capitalGainService.calculateCapitalGains(numsharesgt, numshareslt);
             return ResponseEntity.ok(gains);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));

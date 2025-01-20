@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -22,41 +21,19 @@ public class CapitalGainService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
-    @Value("${stocks1.url}")
-    private String stocks1Url;
+    private String stocksUrl = "http://stocks-service:8000";
     
-    @Value("${stocks2.url}")
-    private String stocks2Url;
 
     public CapitalGainService() {
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
     }
 
-    public float calculateCapitalGains(String portfolio, Integer numSharesGt, Integer numSharesLt) throws Exception {
+    public float calculateCapitalGains(Integer numSharesGt, Integer numSharesLt) throws Exception {
         List<Map<String, Object>> stocks = new ArrayList<>();
         
         try {
-            logger.info("Calculating capital gains for portfolio: {}", portfolio);
-            // Determine which stock service to query based on portfolio parameter
-            if (portfolio == null) {
-                logger.info("Fetching stocks from both services");
-                List<Map<String, Object>> stocks1 = restTemplate.getForObject(stocks1Url + "/stocks", List.class);
-                List<Map<String, Object>> stocks2 = restTemplate.getForObject(stocks2Url + "/stocks", List.class);
-                if (stocks1 != null) stocks.addAll(stocks1);
-                if (stocks2 != null) stocks.addAll(stocks2);
-            } else if ("stocks1".equalsIgnoreCase(portfolio)) {
-                logger.info("Fetching stocks from stocks1 service");
-                List<Map<String, Object>> stocks1 = restTemplate.getForObject(stocks1Url + "/stocks", List.class);
-                if (stocks1 != null) stocks.addAll(stocks1);
-            } else if ("stocks2".equalsIgnoreCase(portfolio)) {
-                logger.info("Fetching stocks from stocks2 service");
-                List<Map<String, Object>> stocks2 = restTemplate.getForObject(stocks2Url + "/stocks", List.class);
-                if (stocks2 != null) stocks.addAll(stocks2);
-            } else {
-                throw new IllegalArgumentException("Invalid portfolio specified. Must be 'stocks1' or 'stocks2'");
-            }
-
+            stocks.addAll(restTemplate.getForObject(stocksUrl + "/stocks", List.class));
             logger.info("Retrieved {} stocks before filtering", stocks.size());
 
             // Filter stocks based on number of shares criteria
@@ -96,18 +73,11 @@ public class CapitalGainService {
         
         logger.info("Calculating gain for stock ID: {}, Purchase price: {}, Shares: {}", stockId, purchasePrice, shares);
         
-        // Try stocks1 first, if fails try stocks2
         float currentPrice;
         try {
-            currentPrice = getCurrentPrice(stocks1Url, stockId);
+            currentPrice = getCurrentPrice(stocksUrl, stockId);
         } catch (Exception e) {
-            logger.warn("Failed to get price from stocks1, trying stocks2", e);
-            try {
-                currentPrice = getCurrentPrice(stocks2Url, stockId);
-            } catch (Exception e2) {
-                logger.error("Failed to get price from both services", e2);
-                throw new RuntimeException("Could not get current price for stock " + stockId);
-            }
+            throw new RuntimeException("Could not get current price for stock " + stockId);
         }
         
         float gain = (currentPrice - purchasePrice) * shares;
@@ -116,9 +86,9 @@ public class CapitalGainService {
     }
 
     private float getCurrentPrice(String serviceUrl, String stockId) throws Exception {
-        logger.info("Getting current price from {}/stock-value/{}", serviceUrl, stockId);
+        logger.info("Getting current price from {}/stocks/stock-value/{}", serviceUrl, stockId);
         ResponseEntity<String> response = restTemplate.exchange(
-            serviceUrl + "/stock-value/" + stockId,
+            serviceUrl + "/stocks/stock-value/" + stockId,
             HttpMethod.GET,
             HttpEntity.EMPTY,
             String.class
