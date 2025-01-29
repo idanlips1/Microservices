@@ -129,7 +129,7 @@ public class StockService {
         float value = 0;
         List <Stock> result = getAllStocks();
         for (Stock stock : result){
-            value += getStockValue(stock.getId()).getStockValue();
+            value += getStockValue(stock.getId()).getTicker();
         }
 
         return value;
