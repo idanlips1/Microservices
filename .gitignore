@@ -1,2 +1,7 @@
-
 .codegpt
+.DS_Store
+.env
+.idea/
+.vscode/
+target/
+*.zip

@@ -25,7 +25,8 @@ public class StockService {
     @Value("${mongo.collection}")
     private String collectionName;
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String API_KEY = "GSBDSCF31HehCSxIozHtjw==CY8yGhcKCEU3ZNgG";
+    @Value("${NINJA_API_KEY:}")
+    private String ninjaApiKey;
     public Integer Counter = 0;
 
     @Autowired
@@ -95,13 +96,17 @@ public class StockService {
             return null;
         }
 
+        if (ninjaApiKey == null || ninjaApiKey.isBlank()) {
+            throw new IllegalStateException("NINJA_API_KEY is not configured");
+        }
+
         String apiURL = "https://api.api-ninjas.com/v1/stockprice?ticker=" + stock.getSymbol();
 
         StockValueResponse result = new StockValueResponse();
 
 
             var headers = new org.springframework.http.HttpHeaders();
-            headers.set("X-Api-Key", API_KEY);
+            headers.set("X-Api-Key", ninjaApiKey);
 
             var entity = new org.springframework.http.HttpEntity<>(headers);
             var response = restTemplate.exchange(apiURL, org.springframework.http.HttpMethod.GET, entity, String.class);
